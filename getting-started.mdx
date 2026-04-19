@@ -1,0 +1,150 @@
+---
+title: "Get started with Lando WordPress"
+description: "Learn how to spin up a fresh local WordPress site using Lando's wordpress recipe — from init through wp core install in minutes."
+---
+
+This page walks you through creating a new local WordPress site from scratch using the `wordpress` recipe. By the end you will have a fully installed WordPress instance running at a local HTTPS URL, ready for development.
+
+## Prerequisites
+
+- [Lando installed](https://docs.lando.dev/getting-started/installation.html) on your machine
+- Basic familiarity with the [Lando CLI](https://docs.lando.dev/cli/)
+
+## Steps
+
+<Steps>
+  <Step title="Create a project folder">
+    Create a new directory for your WordPress project and navigate into it.
+
+    <CodeGroup>
+
+    ```bash bash
+    mkdir wordpress && cd wordpress
+    ```
+
+    ```powershell powershell
+    New-Item -ItemType Directory -Name "wordpress" | Set-Location
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Initialize the Lando app">
+    Run `lando init` to download the latest WordPress release and generate a `.lando.yml` file configured with the `wordpress` recipe.
+
+    <CodeGroup>
+
+    ```bash bash
+    lando init \
+      --source remote \
+      --remote-url https://wordpress.org/latest.tar.gz \
+      --recipe wordpress \
+      --webroot wordpress \
+      --name my-first-wordpress-app
+    ```
+
+    ```powershell powershell
+    lando init `
+      --source remote `
+      --remote-url https://wordpress.org/latest.tar.gz `
+      --recipe wordpress `
+      --webroot wordpress `
+      --name my-first-wordpress-app
+    ```
+
+    </CodeGroup>
+
+    This downloads and extracts WordPress into a `wordpress/` subdirectory and sets it as the webroot.
+  </Step>
+
+  <Step title="Start the app">
+    Bring all services up. Lando pulls the required Docker images on the first run, so this may take a moment.
+
+    ```sh
+    lando start
+    ```
+
+    <Tip>
+      Run `lando info` after startup to see the URLs for all services, including the HTTPS URL for your site.
+    </Tip>
+  </Step>
+
+  <Step title="Create wp-config.php">
+    Use WP-CLI to generate the WordPress configuration file. The database credentials match the defaults that Lando provisions automatically.
+
+    <CodeGroup>
+
+    ```bash bash
+    lando wp config create \
+      --dbname=wordpress \
+      --dbuser=wordpress \
+      --dbpass=wordpress \
+      --dbhost=database \
+      --path=wordpress
+    ```
+
+    ```powershell powershell
+    lando wp config create `
+      --dbname=wordpress `
+      --dbuser=wordpress `
+      --dbpass=wordpress `
+      --dbhost=database `
+      --path=wordpress
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Install WordPress">
+    Run the WP-CLI core install command to create the database tables and set up the admin account. Replace the `--url` value with the actual URL shown by `lando info`.
+
+    <CodeGroup>
+
+    ```bash bash
+    lando wp core install \
+      --url=https://my-first-wordpress-app.lndo.site/ \
+      --title="My First WordPress App" \
+      --admin_user=admin \
+      --admin_password=password \
+      --admin_email=admin@my-first-wordpress-app.lndo.site \
+      --path=wordpress
+    ```
+
+    ```powershell powershell
+    lando wp core install `
+      --url=https://my-first-wordpress-app.lndo.site/ `
+      --title="My First WordPress App" `
+      --admin_user=admin `
+      --admin_password=password `
+      --admin_email=admin@my-first-wordpress-app.lndo.site `
+      --path=wordpress
+    ```
+
+    </CodeGroup>
+  </Step>
+
+  <Step title="Log in to WordPress">
+    Open the admin login page in your browser and sign in with the credentials you set in the previous step.
+
+    ```text
+    https://my-first-wordpress-app.lndo.site/wp-login.php
+    ```
+
+    <Note>
+      The default credentials used above are `admin` / `password`. Change them after your first login or before deploying anywhere.
+    </Note>
+  </Step>
+</Steps>
+
+## Next steps
+
+Now that your site is running, explore how to customise and extend it:
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="sliders" href="/configuration">
+    Change the PHP version, web server, database backend, webroot, and other recipe options.
+  </Card>
+  <Card title="Tooling" icon="wrench" href="/tooling">
+    Learn about all the built-in commands: wp, composer, php, db-import, and db-export.
+  </Card>
+</CardGroup>

@@ -1,0 +1,114 @@
+---
+title: Enable Xdebug in Lando WordPress
+description: Learn how to enable and configure Xdebug for PHP step-debugging in your Lando WordPress environment and connect VS Code or PhpStorm.
+---
+
+Xdebug is a PHP extension that enables step-by-step debugging, stack traces, and code coverage analysis. With Lando, you can turn it on with a single config option — no manual PHP extension management required.
+
+## Enable Xdebug
+
+Add `xdebug: true` to the `config` block in your `.lando.yml`:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  xdebug: true
+```
+
+Then rebuild your environment so the change takes effect:
+
+```bash
+lando rebuild -y
+```
+
+<Warning>
+  Xdebug adds measurable overhead to every PHP request. Enable it only when you are actively debugging, and set it back to `false` when you are done.
+</Warning>
+
+## Disable Xdebug
+
+Set `xdebug` back to `false` in your Landofile and rebuild:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  xdebug: false
+```
+
+```bash
+lando rebuild -y
+```
+
+## Xdebug modes
+
+The `xdebug` config key is a passthrough to Lando's underlying PHP service. In addition to `true` and `false`, you can pass an Xdebug mode string to control which features are active:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  xdebug: debug,coverage
+```
+
+See the [Lando PHP service documentation](https://docs.lando.dev/plugins/php/config.html#using-xdebug) for the full list of supported mode values.
+
+## Triggering Xdebug sessions
+
+Lando's default `php.ini` sets `xdebug.start_with_request = trigger`. This means Xdebug will only start a debug session when it detects the appropriate trigger — a browser cookie, query parameter, or IDE-generated header. Most PHP debug extensions for VS Code and PhpStorm set this trigger automatically.
+
+If you want every request to start a debug session without a trigger, set `xdebug` to the mode string explicitly:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  xdebug: debug
+```
+
+## Connect an IDE
+
+The PHP service exposes Xdebug on port **9003** by default. Most modern IDEs detect this automatically once Xdebug is enabled.
+
+<Tabs>
+  <Tab title="VS Code">
+    Install the [PHP Debug](https://marketplace.visualstudio.com/items?itemName=xdebug.php-debug) extension, then add a launch configuration to `.vscode/launch.json`:
+
+    ```json
+    {
+      "version": "0.2.0",
+      "configurations": [
+        {
+          "name": "Listen for Xdebug",
+          "type": "php",
+          "request": "launch",
+          "port": 9003,
+          "pathMappings": {
+            "/app": "${workspaceFolder}"
+          }
+        }
+      ]
+    }
+    ```
+
+    Start the debugger with **F5**, then trigger a request in your browser to hit a breakpoint.
+  </Tab>
+  <Tab title="PhpStorm">
+    PhpStorm listens for Xdebug connections automatically. Enable the listener with the phone icon in the toolbar, or go to **Run → Start Listening for PHP Debug Connections**.
+
+    Set a breakpoint in your code, then trigger the relevant request in your browser. PhpStorm will pause execution at the breakpoint.
+
+    <Note>
+      Make sure PhpStorm's Xdebug port is set to `9003` under **Settings → PHP → Debug → Xdebug**.
+    </Note>
+  </Tab>
+</Tabs>
+
+<Tip>
+  For advanced Xdebug configuration — custom `xdebug.ini` settings, profiling, or tracing — see the [Lando PHP service docs](https://docs.lando.dev/plugins/php/config.html#using-xdebug).
+</Tip>

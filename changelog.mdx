@@ -1,0 +1,59 @@
+---
+title: "Lando WordPress plugin changelog"
+description: "Release history for @lando/wordpress — new features, bug fixes, and breaking changes across all versions of the Lando WordPress plugin."
+---
+
+This page summarizes the most recent releases of `@lando/wordpress`. For the full history, see the [CHANGELOG on GitHub](https://github.com/lando/wordpress/blob/main/CHANGELOG.md) or browse all tagged releases below.
+
+<Card title="All releases" icon="tag" href="https://github.com/lando/wordpress/releases">
+  View every release of @lando/wordpress on GitHub, including pre-releases and release notes.
+</Card>
+
+## v1.11.0 — March 11, 2026
+
+- Fixed MySQL 8.4 startup failure by removing hardcoded `mysql_native_password` authentication
+- Removed `--ansi` flag from the composer tooling command to prevent escape codes in redirected output
+- Updated to `@lando/nginx@1.6.0`
+- Updated to `@lando/php@1.12.0` — enables `mod_headers`/`mod_expires` by default and fixes xdebug log ownership
+
+## v1.10.1 — February 22, 2026
+
+- Updated `lando init` to set the recommended PHP 8.3 and MySQL defaults
+- Added `wordpress-recommended` example with explicit version configuration
+- Updated to `@lando/php@1.11.1` and `@lando/argv@1.2.0`
+
+## v1.10.0 — February 20, 2026
+
+- Updated to `@lando/php@1.11.0`
+- Fixed release workflow trigger to fire on `published` instead of `created`
+- Updated CI actions (`actions/checkout` to v6, `actions/setup-node` to v6, `actions/cache` to v5)
+- Updated `@lando/mariadb`, `@lando/postgres`, and `@lando/argv` dependencies
+
+## v1.9.0 — September 2, 2025
+
+- Switched images to the `bitnamilegacy` namespace
+- Updated to `@lando/mariadb@1.7.0`, `@lando/mysql@1.6.0`, `@lando/nginx@1.5.0`, `@lando/php@1.8.0`, and `@lando/postgres@1.5.0`
+
+## v1.8.0 — December 9, 2024
+
+- Optimized for `midcore`
+- Removed unneeded `@lando/apache` dependency
+- Updated to `@lando/mariadb@1.6.3`, `@lando/mssql@1.4.3`, `@lando/mysql@1.4.4`, `@lando/php@1.6.3`, and `@lando/postgres@1.4.4`
+
+## v1.4.1 — September 6, 2024
+
+- Fixed a bug causing default `proxy` settings to be clobbered by user-specified ones
+- Updated DevOps tooling to use the new `lando exec` command
+- Updated Ubuntu test runners to `24.04`
+
+## v1.2.0 — February 22, 2024
+
+- Added support for PHP 8.3 and PHP 8.2
+- Fixed a `CRITICAL` issue with default config files not loading correctly
+- Updated to `@lando/php@1.2.0`
+
+## v1.0.0 — December 7, 2023
+
+- Dialed fully for `lando update`
+
+<Note>Releases prior to v1.0.0 are available in the [full changelog](https://github.com/lando/wordpress/blob/main/CHANGELOG.md) and on [GitHub releases](https://github.com/lando/wordpress/releases).</Note>

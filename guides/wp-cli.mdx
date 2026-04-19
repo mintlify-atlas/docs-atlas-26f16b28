@@ -1,0 +1,108 @@
+---
+title: Run WP-CLI commands with Lando WordPress
+description: Use lando wp to run any WP-CLI command in your containerized Lando WordPress environment without installing PHP or WP-CLI on your host machine.
+---
+
+The Lando WordPress recipe automatically installs WP-CLI inside the `appserver` container and exposes it as `lando wp`. You can run any WP-CLI command without installing PHP or WP-CLI on your local machine.
+
+## Basic usage
+
+Prefix any WP-CLI command with `lando wp`:
+
+```bash
+lando wp <any wp-cli command>
+```
+
+To confirm WP-CLI is available and see its environment details:
+
+```bash
+lando wp --info
+```
+
+## Common commands
+
+```bash
+# Search and replace a domain URL
+lando wp search-replace 'https://production.example.com' 'https://mysite.lndo.site'
+
+# Install and activate a plugin
+lando wp plugin install woocommerce --activate
+
+# List active plugins
+lando wp plugin list
+
+# Create a WordPress config file
+lando wp config create \
+  --dbname=wordpress \
+  --dbuser=wordpress \
+  --dbpass=wordpress \
+  --dbhost=database
+
+# Install WordPress
+lando wp core install \
+  --url=https://mysite.lndo.site/ \
+  --title="My Site" \
+  --admin_user=admin \
+  --admin_password=password \
+  --admin_email=admin@mysite.lndo.site
+
+# Update all plugins
+lando wp plugin update --all
+
+# Run a WP-CLI script
+lando wp eval-file my-script.php
+```
+
+<Note>
+  Lando installs the latest WP-CLI phar automatically at container build time. If you are using PHP 5.3, Lando installs WP-CLI 1.5.1 (the last version that supports PHP 5.3) instead of the latest release.
+</Note>
+
+## Common workflows
+
+<AccordionGroup>
+  <Accordion title="Set up a fresh WordPress install">
+    After running `lando start` on a new project, use WP-CLI to create the config file and run the WordPress installer in one pass:
+
+    ```bash
+    # Generate wp-config.php
+    lando wp config create \
+      --dbname=wordpress \
+      --dbuser=wordpress \
+      --dbpass=wordpress \
+      --dbhost=database
+
+    # Run the WordPress installer
+    lando wp core install \
+      --url=https://mysite.lndo.site/ \
+      --title="My Site" \
+      --admin_user=admin \
+      --admin_password=password \
+      --admin_email=admin@mysite.lndo.site
+    ```
+
+    After this completes, your WordPress site is ready at `https://mysite.lndo.site`.
+  </Accordion>
+  <Accordion title="Migrate a site from another environment">
+    After importing a database dump with `lando db-import`, update all URLs so assets and links resolve correctly in your local environment:
+
+    ```bash
+    # Replace production URLs with the local Lando URL
+    lando wp search-replace 'https://production.example.com' 'https://mysite.lndo.site'
+
+    # Flush rewrite rules and caches
+    lando wp rewrite flush
+    lando wp cache flush
+    ```
+  </Accordion>
+  <Accordion title="Bulk update plugins">
+    Keep your local environment in sync with production by updating all plugins at once:
+
+    ```bash
+    # List plugins that have available updates
+    lando wp plugin list --update=available
+
+    # Update all plugins
+    lando wp plugin update --all
+    ```
+  </Accordion>
+</AccordionGroup>

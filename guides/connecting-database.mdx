@@ -1,0 +1,147 @@
+---
+title: Connect to your Lando WordPress database
+description: Learn how to connect to the WordPress local database using lando info, a database GUI client, or direct wp-config.php configuration.
+---
+
+Lando automatically provisions a database service for your WordPress site and injects connection details into the environment. You can connect from `wp-config.php`, a GUI client like TablePlus or Sequel Pro, or inspect credentials at any time with `lando info`.
+
+## Default credentials
+
+The default database connection details for a WordPress recipe are shown below. Note that the `host` is `database`, not `localhost` — this is the internal Docker network hostname for the database service.
+
+```yaml
+database: wordpress
+username: wordpress
+password: wordpress
+host: database
+port: 3306
+```
+
+<Note>
+  If you have customized the `database` config key in your Landofile, your credentials may differ. Run `lando info` to see the actual values for your app.
+</Note>
+
+## Get connection details with lando info
+
+Run `lando info` from your app directory to print a full summary of all services, including the database's internal and external connection details:
+
+```bash
+lando info
+```
+
+Look for the `database` service entry. It contains two connection objects:
+
+- **`internal_connection`** — the hostname and port accessible inside the containers (use this in `wp-config.php`)
+- **`external_connection`** — the host and port exposed on your local machine (use this in GUI clients)
+
+## Configure wp-config.php
+
+Place one of the following blocks at the **top** of `wp-config.php`, before any other database definitions.
+
+<Tabs>
+  <Tab title="Hardcoded values">
+    The simplest approach — check for the `LANDO` environment variable and define credentials directly:
+
+    ```php
+    /** Only load these values inside a Lando environment */
+    if (getenv('LANDO')) {
+      /** The name of the database for WordPress */
+      define('DB_NAME', 'wordpress');
+      /** MySQL database username */
+      define('DB_USER', 'wordpress');
+      /** MySQL database password */
+      define('DB_PASSWORD', 'wordpress');
+      /** MySQL hostname — must be 'database', not 'localhost' */
+      define('DB_HOST', 'database');
+
+      /** URL routing (optional, may not be necessary) */
+      // define('WP_HOME', 'http://mysite.lndo.site');
+      // define('WP_SITEURL', 'http://mysite.lndo.site');
+    }
+    ```
+  </Tab>
+  <Tab title="Dynamic via LANDO_INFO">
+    Read credentials dynamically from the `LANDO_INFO` environment variable. This approach automatically adapts if you change database settings in your Landofile:
+
+    ```php
+    /** Only load these values inside a Lando environment */
+    if (getenv('LANDO_INFO')) {
+      /** Parse the LANDO_INFO JSON blob */
+      $lando_info = json_decode(getenv('LANDO_INFO'));
+
+      /** Get the database service config */
+      $database_config = $lando_info->database;
+
+      /** The name of the database for WordPress */
+      define('DB_NAME', $database_config->creds->database);
+      /** MySQL database username */
+      define('DB_USER', $database_config->creds->user);
+      /** MySQL database password */
+      define('DB_PASSWORD', $database_config->creds->password);
+      /** MySQL hostname */
+      define('DB_HOST', $database_config->internal_connection->host);
+
+      /** URL routing (optional, may not be necessary) */
+      // define('WP_HOME', 'http://mysite.lndo.site');
+      // define('WP_SITEURL', 'http://mysite.lndo.site');
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Connect with a GUI client
+
+Lando enables port forwarding for the database service by default, so you can connect from any GUI database client running on your host machine.
+
+<Steps>
+  <Step title="Get the external connection details">
+    Run `lando info` and find the `external_connection` block under the `database` service. It will show a host (usually `127.0.0.1`) and a randomly assigned port.
+  </Step>
+  <Step title="Open your GUI client">
+    Open TablePlus, Sequel Pro, DBeaver, or any MySQL-compatible client.
+  </Step>
+  <Step title="Enter the connection details">
+    Use the `external_connection` host and port from `lando info`, together with the credentials:
+
+    ```text
+    Host:     127.0.0.1
+    Port:     <port from lando info>
+    User:     wordpress
+    Password: wordpress
+    Database: wordpress
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  The external port changes each time you run `lando start`. Always check `lando info` for the current port before connecting from an external client.
+</Tip>
+
+## Database backend differences
+
+<Tabs>
+  <Tab title="MySQL / MariaDB">
+    The default WordPress recipe uses MySQL or MariaDB. The default port is `3306` and the CLI command is `lando mysql` (or `lando mariadb` for MariaDB 10.4+).
+
+    ```yaml
+    recipe: wordpress
+    config:
+      php: '8.3'
+      database: mysql:8.0
+    ```
+  </Tab>
+  <Tab title="PostgreSQL">
+    If you switch to PostgreSQL, the default port changes to `5432` and the CLI command becomes `lando psql`.
+
+    ```yaml
+    recipe: wordpress
+    config:
+      php: '8.3'
+      database: postgres:14
+    ```
+
+    <Warning>
+      WordPress does not natively support PostgreSQL. You will need a plugin such as PG4WP to use Postgres as a WordPress database backend.
+    </Warning>
+  </Tab>
+</Tabs>

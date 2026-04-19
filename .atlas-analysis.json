@@ -1,0 +1,79 @@
+{
+  "projectType": "framework",
+  "projectName": "Lando WordPress Plugin",
+  "projectDescription": "The official Lando plugin providing a fully-configured local WordPress development environment with PHP, web server, and database options.",
+  "theme": "aspen",
+  "primaryColor": "#dc4494",
+  "lightColor": null,
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "getting-started"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration",
+              "tooling",
+              "advanced-config"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/connecting-database",
+              "guides/importing-exporting",
+              "guides/xdebug",
+              "guides/wp-cli"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "development",
+              "changelog"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Configurable PHP version from 5.3 to 8.5+",
+    "Support for Apache and Nginx web servers",
+    "Multiple database backends: MySQL, MariaDB, PostgreSQL",
+    "Built-in WP-CLI integration via lando wp",
+    "Composer support for dependency management",
+    "Xdebug integration for PHP debugging",
+    "Database import/export tooling (db-import, db-export)",
+    "Custom config file overrides for PHP, web server, and database"
+  ],
+  "publicApiSurface": [
+    "recipe: wordpress (Landofile recipe)",
+    "config.php — PHP version (5.3–8.5+)",
+    "config.via — Web server (apache|nginx)",
+    "config.database — Database backend (mysql|mariadb|postgres)",
+    "config.webroot — Document root path",
+    "config.composer_version — Composer version",
+    "config.xdebug — Xdebug toggle (true|false)",
+    "config.config.php — Custom php.ini path",
+    "config.config.database — Custom database config path",
+    "config.config.server — Custom server config path",
+    "config.config.vhosts — Custom vhosts config path",
+    "lando wp — WP-CLI passthrough",
+    "lando composer — Composer passthrough",
+    "lando php — PHP CLI passthrough",
+    "lando mysql / lando mariadb / lando psql — Database shell",
+    "lando db-import <file> — Import database dump",
+    "lando db-export [file] — Export database dump"
+  ]
+}

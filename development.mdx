@@ -1,94 +1,174 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Contribute to the Lando WordPress plugin"
+description: "Set up a local development environment to work on the @lando/wordpress plugin, run tests, write examples, and submit pull requests."
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+Contributing to `@lando/wordpress` means working directly with a cloned copy of the plugin and testing your changes against real Lando apps. This guide covers everything you need to get started — from installation through testing, documentation, and releasing.
 
-Follow these steps to install and run Mintlify on your operating system.
+## Requirements
+
+Make sure you have the following installed before getting started:
+
+- [Lando 3.21.0+](https://docs.lando.dev/getting-started/installation.html), preferably [from source](https://docs.lando.dev/install/source.html)
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [Node 20](https://nodejs.org/dist/latest-v20.x/)
+
+## Installation
 
 <Steps>
-<Step title="Install the Mintlify CLI">
-
-```bash
-npm i -g mint
-```
-</Step>
-
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
-
-```bash
-mint dev
-```
-
-A local preview of your documentation will be available at `http://localhost:3000`.
-
-</Step>
+  <Step title="Clone the repository">
+    ```sh
+    git clone https://github.com/lando/wordpress.git && cd wordpress
+    ```
+  </Step>
+  <Step title="Install dependencies">
+    ```sh
+    npm install
+    ```
+  </Step>
 </Steps>
 
-## Custom ports
+## Working with examples
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+The `examples/` folder contains working, tested Lando apps that you should use — or extend — while developing the plugin. Each example includes the following in its Landofile:
+
+```yaml
+plugins:
+  "@lando/wordpress": ../..
+```
+
+This tells Lando to load the plugin from your local clone instead of the globally installed stable version, so your development work stays isolated. You should almost always develop against apps in the `examples/` folder, and those apps should always include this `plugins` config.
+
+<Tip>Check existing examples before creating a new one — there's likely already one close to what you need that you can extend or copy.</Tip>
+
+The available examples cover a range of common WordPress setups:
+
+| Example | Purpose |
+|---|---|
+| `wordpress-recommended` | Explicit PHP 8.3 + MySQL 8.0 configuration |
+| `wordpress-nginx` | WordPress running behind Nginx |
+| `wordpress-custom` | Custom PHP, database, and vhost config file overrides |
+| `wordpress-mariadb` | WordPress with MariaDB |
+| `wordpress-mariadb-mysql` | MariaDB/MySQL compatibility testing |
+| `wordpress-mysql8` | WordPress with MySQL 8 |
+| `wordpress-defaults` | Default Lando WordPress settings |
+| `wordpress-init` | Tests for `lando init` scaffolding |
+| `wordpress-export` | Database export workflow |
+| `wordpress-import` | Database import workflow |
+| `wordpress-downstreamer-1` | Downstream plugin compatibility test |
+| `wordpress-downstreamer-2` | Downstream plugin compatibility test |
+
+If you want to test against an existing app outside this repo, you can temporarily point it at your local clone with the same config:
+
+```yaml
+plugins:
+  "@lando/wordpress": /path/to/plugin
+```
+
+Whether you're working from an existing example or a new one, update or add tests as you go.
+
+## Testing
+
+Familiarize yourself with how Lando [handles testing](https://docs.lando.dev/contrib/coder.html) in general before diving in.
+
+### Unit tests
+
+Unit-testable code belongs in `utils/`, with corresponding tests in `test/` named `FILE-BEING-TESTED.spec.js`:
+
+```text
+./
+|-- utils/
+    |-- stuff.js
+|-- test/
+    |-- stuff.spec.js
+```
+
+Run unit tests with:
 
 ```bash
-mint dev --port 3333
+npm run test:unit
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+### Leia tests
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+End-to-end tests use [Leia](https://github.com/lando/leia), a testing framework built for Lando that defines tests as commented shell commands inside markdown files. Every `README.md` in the `examples/` folder is a Leia test file. Here's what the structure looks like:
 
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
+````md
+## Start up tests
 
 ```bash
-npm mint update
+# Should start up successfully
+lando start
 ```
 
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+## Verification commands
 
 ```bash
-mint broken-links
+# Should be able to connect to all mariadb relationships
+lando mariadb main -e "show tables;"
+
+# Should do something else
+lando exec appserver -- some-command
 ```
 
-## Deployment
+## Destroy tests
 
-If the deployment is successful, you should see the following:
+```bash
+# Should be able to destroy our app
+lando destroy -y
+```
+````
 
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
+The section headers matter: **Start up tests** runs before the main suite, **Verification commands** is the required main body, and **Destroy tests** handles cleanup.
 
-## Code formatting
+```bash
+# Run all Leia tests (this will take a while)
+npm run test:leia
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+# Run a single example's tests
+npx leia examples/wordpress-recommended/README.md -c 'Destroy tests'
+```
 
-## Troubleshooting
+<Note>If you add a new testable example, register it in the appropriate GitHub Actions workflow file under `jobs.leia-tests.strategy.matrix.leia-test`. You can copy an existing workflow and update the `name` and filename to something that fits.</Note>
 
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
+## Documentation
 
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
-  </Accordion>
+The docs use [VitePress](https://vitepress.dev/) with the [Lando VitePress theme](https://vitepress-theme-default-plus.lando.dev). Once you've cloned and installed the project:
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
-  </Accordion>
-</AccordionGroup>
+```bash
+# Launch a local docs preview
+npm run docs:dev
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+# Build docs
+npm run docs:build
+
+# Preview the built docs
+npm run docs:preview
+```
+
+## Releasing
+
+Releases are published to npm automatically when you [create a release on GitHub](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository). Use semantic versioning for the release title (e.g. `v1.11.0`).
+
+<CardGroup cols={2}>
+  <Card title="Stable release" icon="tag">
+    Published to npm with the `latest` tag.
+
+    ```bash
+    npm install @lando/wordpress
+    ```
+  </Card>
+  <Card title="Pre-release" icon="flask">
+    Checking the **pre-release** checkbox on GitHub tags the npm package as `edge` instead of `latest`.
+
+    ```bash
+    npm install @lando/wordpress@edge
+    ```
+  </Card>
+</CardGroup>
+
+<Warning>Toggling the pre-release checkbox after the initial release is created will not trigger a new deployment or promote the package from `edge` to `latest`. To publish to `latest`, create a new release without pre-release checked.</Warning>
+
+## Contributing code
+
+Follow [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow) when contributing: branch from `main`, make your changes, open a pull request, and request a review.

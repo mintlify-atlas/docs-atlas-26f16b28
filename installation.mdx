@@ -1,0 +1,69 @@
+---
+title: "Install the Lando WordPress plugin"
+description: "Learn how to install or update the @lando/wordpress plugin, verify it's active, and use lando plugin-add or Docker for manual installation."
+---
+
+The `@lando/wordpress` plugin ships with Lando 3 by default, so most users already have it without any extra steps. If you installed Lando 3 through the standard installer, the plugin is bundled and ready to use.
+
+## Verify the plugin is installed
+
+Run the following command to confirm the plugin is present and see which version is active:
+
+```sh
+lando version --component @lando/wordpress
+```
+
+If the command returns a version number, the plugin is installed and you can move on to [Getting started](/getting-started).
+
+## Install or update manually
+
+Use one of the methods below if you need to install the plugin for the first time, update it to the latest version, or pin a specific release.
+
+<CodeGroup>
+
+```sh lando 3.21+
+lando plugin-add @lando/wordpress
+```
+
+```sh docker
+# Ensure you have a global plugins directory
+mkdir -p ~/.lando/plugins
+
+# Install the plugin
+# To pin a version, change the install line to e.g.:
+#   npm install @lando/wordpress@0.5.2
+docker run --rm -it -v ${HOME}/.lando/plugins:/plugins -w /tmp node:18-alpine sh -c \
+  "npm init -y \
+  && npm install @lando/wordpress --production --flat --no-default-rc --no-lockfile --link-duplicates \
+  && npm install --production --cwd /tmp/node_modules/@lando/wordpress \
+  && mkdir -p /plugins/@lando \
+  && mv --force /tmp/node_modules/@lando/wordpress /plugins/@lando/wordpress"
+
+# Rebuild the plugin cache
+lando --clear
+```
+
+```sh verify
+# List all loaded plugins and their paths
+lando config --path plugins
+```
+
+</CodeGroup>
+
+After running the Docker method, run `lando --clear` to rebuild the plugin cache before using the plugin.
+
+## Edge releases
+
+To install the latest unreleased build from the `edge` channel, use npm directly:
+
+```sh
+npm install @lando/wordpress@edge
+```
+
+<Note>
+  Edge releases may contain breaking changes or unfinished features. Use them to test upcoming functionality, not for production workflows.
+</Note>
+
+<Tip>
+  Run `lando version --component @lando/wordpress` at any time to confirm which version is currently active. The output also shows where the plugin is being loaded from.
+</Tip>

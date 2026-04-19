@@ -1,0 +1,77 @@
+---
+title: "Custom config files for Lando WordPress"
+description: "Override the default PHP, web server, vhosts, and database config files used by the Lando WordPress recipe with your own custom files."
+---
+
+Lando's WordPress recipe ships with default configuration files for PHP, the web server, virtual hosts, and the database engine. If you need to tune settings beyond what the recipe exposes — such as adjusting `memory_limit`, enabling query logging, or tweaking Nginx fastcgi buffers — you can replace any of these defaults with your own files.
+
+## How config file overrides work
+
+When you specify a config file in your Landofile, Lando mounts that file into the appropriate container instead of its built-in default. All paths are relative to your project root (the directory containing `.lando.yml`). You can store config files anywhere inside the project; the `config/` directory used in the examples below is a convention, not a requirement.
+
+## File structure
+
+A typical project using all four config overrides looks like this:
+
+```bash
+./
+|-- config
+   |-- default.conf
+   |-- my-custom.cnf
+   |-- php.ini
+   |-- server.conf
+|-- index.php
+|-- .lando.yml
+```
+
+## Landofile example
+
+The following `.lando.yml` shows all four config keys in use:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  config:
+    database: config/my-custom.cnf
+    php: config/php.ini
+    server: config/server.conf
+    vhosts: config/default.conf
+```
+
+<Note>
+The `vhosts` and `server` config keys correspond to different file formats depending on your `via` setting. If you use `via: apache`, these are Apache virtual host and server config files. If you use `via: nginx`, they are Nginx `server {}` block and main server config files. Review the [Apache plugin docs](https://docs.lando.dev/plugins/apache/config.html) or [Nginx plugin docs](https://docs.lando.dev/plugins/nginx/config.html) before writing custom vhost or server config.
+</Note>
+
+## Config key reference
+
+| Key        | Overrides                                  | Default file         |
+|------------|--------------------------------------------|----------------------|
+| `php`      | PHP runtime settings (`php.ini`)           | `php.ini`            |
+| `database` | MySQL/MariaDB server options (`.cnf` file) | `mysql.cnf` or `mysql8.cnf` depending on version |
+| `server`   | Web server config (Apache or Nginx)        | None (service default) |
+| `vhosts`   | Virtual host / server block config        | `default.conf.tpl` (Nginx) or service default (Apache) |
+
+## Overriding environment variables
+
+You can also tune PHP and other service settings using environment variable overrides in the `services` section of your Landofile. This is useful for quick adjustments that don't require a full config file replacement.
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+
+services:
+  appserver:
+    overrides:
+      environment:
+        PHP_MEMORY_LIMIT: 2G
+```
+
+The `PHP_MEMORY_LIMIT` variable is read by Lando's default `php.ini` and sets `memory_limit`. This is the quickest way to adjust PHP memory without replacing the entire `php.ini`. If you supply your own full `php.ini` via `config.php`, use the `memory_limit` directive directly inside that file instead.
+
+<Tip>
+All config file paths must be relative to the project root. Absolute paths and paths outside the project directory are not supported.
+</Tip>

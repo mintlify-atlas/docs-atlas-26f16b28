@@ -1,0 +1,208 @@
+---
+title: "Configure the Lando WordPress recipe"
+description: "Set PHP version, Composer version, web server, database backend, and wp-config.php connection settings for local WordPress development with Lando."
+---
+
+The Lando WordPress recipe ships with sensible defaults so you can get running immediately, but every aspect of it is configurable. You can pin specific PHP and database versions, swap Apache for Nginx, change the webroot, and provide your own config files for PHP, the web server, and the database.
+
+## Default configuration
+
+The full set of config options and their defaults is shown below. Place these under the `config` key in your `.lando.yml`.
+
+```yaml
+recipe: wordpress
+config:
+  php: '7.4'
+  composer_version: '2.0.7'
+  via: apache:2.4
+  webroot: .
+  database: mysql:5.7
+  xdebug: false
+  config:
+    database: SEE BELOW
+    php: SEE BELOW
+    server: SEE BELOW
+    vhosts: SEE BELOW
+```
+
+<Warning>
+Always set `php` and `database` explicitly in your Landofile. Defaults may change between Lando releases and produce unexpected behavior. The current recommended versions for WordPress are:
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+```
+
+See the [WordPress server requirements](https://wordpress.org/about/requirements/) for the latest recommendations.
+</Warning>
+
+## PHP version
+
+You can set `php` to any version available in the [Lando PHP service](https://docs.lando.dev/plugins/php/index.html). Check the [WordPress requirements](https://wordpress.org/about/requirements/) to confirm the version is supported by WordPress itself.
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+```
+
+## Composer version
+
+Set `composer_version` to any version available via the [Lando PHP service](https://docs.lando.dev/plugins/php/config.html#installing-composer).
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  composer_version: '1.10.1'
+```
+
+## Web server
+
+The recipe uses Apache by default. You can switch to Nginx by setting `via: nginx`. Review the [Apache](https://docs.lando.dev/plugins/apache/index.html) and [Nginx](https://docs.lando.dev/plugins/nginx/index.html) service docs before changing this option, as it also affects which `vhosts` and `server` config files apply.
+
+<CodeGroup>
+
+```yaml Apache (default)
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  via: apache
+```
+
+```yaml Nginx
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  via: nginx
+```
+
+</CodeGroup>
+
+## Database backend
+
+The recipe defaults to MySQL. You can switch to MariaDB or PostgreSQL by changing the `database` key. Specify a version using `engine:version` notation. Confirm the version is supported by WordPress before changing.
+
+<CodeGroup>
+
+```yaml MySQL (default)
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+```
+
+```yaml MariaDB
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mariadb:10.6
+```
+
+```yaml PostgreSQL
+recipe: wordpress
+config:
+  php: '8.3'
+  database: postgres:14
+```
+
+</CodeGroup>
+
+## Webroot
+
+The `webroot` key tells Lando which directory inside your project to serve as the document root. It defaults to `.` (the project root). Set it to the directory that contains your `index.php`.
+
+```yaml
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+  webroot: web
+```
+
+## Configuring wp-config.php
+
+If you are connecting an existing WordPress site, you need to update `wp-config.php` so WordPress can reach Lando's database. Add one of the following blocks at the **top** of `wp-config.php`.
+
+<Tip>
+Run `lando info` first to confirm your database credentials. If you have customized them they may differ from the defaults shown below.
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="Method 1: Hardcode the values">
+    Use the `LANDO` environment variable to gate the block so it only applies inside Lando.
+
+    ```php
+    /** This will ensure these are only loaded on Lando  */
+    if (getenv('LANDO')) {
+      /** The name of the database for WordPress */
+      define('DB_NAME', 'wordpress');
+      /** MySQL database username */
+      define('DB_USER', 'wordpress');
+      /** MySQL database password */
+      define('DB_PASSWORD', 'wordpress');
+      /** MySQL hostname */
+      define('DB_HOST', 'database');
+
+      /** URL routing (Optional, may not be necessary) */
+      // define('WP_HOME','http://mysite.lndo.site');
+      // define('WP_SITEURL','http://mysite.lndo.site');
+    }
+    ```
+  </Accordion>
+  <Accordion title="Method 2: Parse LANDO_INFO">
+    Lando injects a `LANDO_INFO` environment variable containing a JSON object with connection details for every service. You can parse it to avoid hardcoding credentials.
+
+    ```php
+    /** This will ensure these are only loaded on Lando */
+    if (getenv('LANDO_INFO')) {
+      /**  Parse the LANDO INFO  */
+      $lando_info = json_decode(getenv('LANDO_INFO'));
+
+      /** Get the database config */
+      $database_config = $lando_info->database;
+      /** The name of the database for WordPress */
+      define('DB_NAME', $database_config->creds->database);
+      /** MySQL database username */
+      define('DB_USER', $database_config->creds->user);
+      /** MySQL database password */
+      define('DB_PASSWORD', $database_config->creds->password);
+      /** MySQL hostname */
+      define('DB_HOST', $database_config->internal_connection->host);
+
+      /** URL routing (Optional, may not be necessary) */
+      // define('WP_HOME','http://mysite.lndo.site');
+      // define('WP_SITEURL','http://mysite.lndo.site');
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Default database connection info
+
+Lando creates a database, user, and password automatically. The default connection details are:
+
+```yaml
+database: wordpress
+username: wordpress
+password: wordpress
+host: database
+# for mysql/mariadb
+port: 3306
+# for postgres
+# port: 5432
+```
+
+<Note>
+The host is `database`, not `localhost`. Using `localhost` will cause connection failures.
+</Note>
+
+<Tip>
+Run `lando info` from your project directory to see the full connection details, including the external port forwarded to your host machine.
+</Tip>

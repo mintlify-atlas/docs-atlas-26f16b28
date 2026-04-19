@@ -1,0 +1,95 @@
+---
+title: Import and export databases in Lando WordPress
+description: Use lando db-import to load SQL dumps into WordPress and lando db-export to back up your database — supports gzip and zip files.
+---
+
+Lando ships with `lando db-import` and `lando db-export` to move database dumps in and out of your local environment without installing any additional tools. You can import compressed or uncompressed SQL files and export to a file or stdout.
+
+## Importing a database
+
+<Warning>
+  The dump file must exist somewhere inside your app directory. Docker's file sharing restrictions prevent `db-import` from reading files outside the project folder.
+</Warning>
+
+`lando db-import` accepts uncompressed SQL (`.sql`), gzipped SQL (`.sql.gz`), and zipped SQL (`.zip`) files.
+
+```bash
+# Download a remote dump
+curl -fsSL -o database.sql.gz "https://url.to.your.db/database.sql.gz"
+
+# Import it
+lando db-import database.sql.gz
+```
+
+### db-import options
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--host` | `-h` | The database service to target (default: `database`) |
+| `--no-wipe` | | Skip dropping the existing database before importing |
+
+```bash
+# Import without wiping the existing database first
+lando db-import database.sql --no-wipe
+
+# Import into a non-default database service
+lando db-import database.sql --host my-other-db
+```
+
+## Exporting a database
+
+`lando db-export` dumps your database to a file in the current directory, or writes it to stdout for piping.
+
+```bash
+# Export to a file
+lando db-export my-backup.sql
+
+# Export to stdout
+lando db-export --stdout
+```
+
+### db-export options
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--host` | `-h` | The database service to target (default: `database`) |
+| `--stdout` | | Stream the dump to stdout instead of writing a file |
+
+<Tip>
+  Use `--host` when your Landofile defines more than one database service. Pass the service name exactly as it appears in your Landofile.
+</Tip>
+
+## Common scenarios
+
+<AccordionGroup>
+  <Accordion title="Migrating from production">
+    Download a dump from your production environment, place it inside your app directory, and import it into Lando:
+
+    ```bash
+    # Download the production dump into your project root
+    curl -fsSL -o database.sql.gz "https://your-production-host.example.com/backups/database.sql.gz"
+
+    # Import into the local Lando database
+    lando db-import database.sql.gz
+    ```
+
+    After importing, run a search-replace to update URLs so links and assets resolve correctly in your local environment:
+
+    ```bash
+    lando wp search-replace 'https://your-production-host.example.com' 'https://mysite.lndo.site'
+    ```
+  </Accordion>
+  <Accordion title="Working with a team">
+    Before switching branches or sharing work with a teammate, export a snapshot of the current database state so it can be restored if needed:
+
+    ```bash
+    # Create a timestamped backup before switching branches
+    lando db-export backup-$(date +%Y%m%d).sql
+
+    # Later, restore it
+    lando db-import backup-20241201.sql
+    ```
+
+    Commit the `.sql` file to your repository or share it out-of-band so teammates can import the same data set.
+  </Accordion>
+</AccordionGroup>

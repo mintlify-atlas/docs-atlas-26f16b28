@@ -1,0 +1,49 @@
+---
+title: "WordPress Lando Plugin: Overview and features"
+description: "The official Lando plugin for WordPress local development. Runs WordPress with configurable PHP, web servers, and database backends."
+---
+
+The `@lando/wordpress` plugin is the official Lando integration for WordPress. It provides a `wordpress` recipe that wires up a fully configured local development environment — PHP, a web server, a database, and WP-CLI — so you can go from zero to a running WordPress site with a single `lando start`.
+
+## Key features
+
+- **PHP 5.3–8.5+** — pick the exact version your project requires
+- **Web server** — choose between Apache (default) and Nginx
+- **Database backend** — MySQL, MariaDB, or PostgreSQL
+- **WP-CLI** — run `lando wp` commands directly inside the container
+- **Composer** — manage PHP dependencies without a local installation
+- **Xdebug** — enable step debugging with a single config flag
+- **db-import / db-export** — import and export database dumps using built-in tooling
+
+## Basic Landofile
+
+Add a `wordpress` recipe to a `.lando.yml` file at the root of your project to get started. The defaults use PHP 8.3, Apache, and MySQL 8.0.
+
+```yaml
+name: wordpress-app
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+```
+
+## Explore the docs
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install or update the plugin and verify it is active.
+  </Card>
+  <Card title="Getting started" icon="rocket" href="/getting-started">
+    Spin up a fresh WordPress site from scratch in minutes.
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/configuration">
+    Customize PHP version, web server, database, webroot, and more.
+  </Card>
+  <Card title="Tooling" icon="wrench" href="/tooling">
+    Use wp, composer, php, db-import, db-export, and other built-in commands.
+  </Card>
+</CardGroup>
+
+<Note>
+  Once your WordPress site is running with Lando, you get access to the full Lando ecosystem: custom services, events, routing, and more. See the [Lando docs](https://docs.lando.dev) for everything the platform offers.
+</Note>

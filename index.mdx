@@ -1,97 +1,77 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Lando WordPress Plugin: Local WordPress Development"
+description: "The official Lando plugin for WordPress. Spin up a fully-configured local WordPress environment with PHP, MySQL, WP-CLI, and more in minutes."
 ---
 
-## Setting up
+The Lando WordPress plugin gives you a complete, containerized local WordPress development environment. Configure your PHP version, choose between Apache or Nginx, pick a database backend, and get WP-CLI, Composer, and Xdebug built right in — all from a single Landofile.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the WordPress plugin for Lando 3 and verify it's ready to use.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Spin up your first WordPress site with Lando in a few commands.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Configuration" icon="sliders" href="/configuration">
+    Set PHP version, web server, database backend, and custom config files.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Tooling" icon="wrench" href="/tooling">
+    Use WP-CLI, Composer, PHP, and database shells through Lando.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What this plugin provides
 
-Everything you need to create world-class documentation.
+The `@lando/wordpress` plugin adds a `wordpress` recipe to Lando — a single configuration block that sets up everything you need for local WordPress development:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+- **PHP 5.3–8.5+** — Pin the exact PHP version WordPress requires
+- **Apache or Nginx** — Switch web servers with one config line
+- **MySQL, MariaDB, or PostgreSQL** — Choose your database backend
+- **WP-CLI** — Run `lando wp` commands directly in your environment
+- **Composer** — Manage PHP dependencies without installing anything locally
+- **Xdebug** — Enable step debugging with a single config toggle
+- **Database import/export** — `lando db-import` and `lando db-export` built in
 
-## Need inspiration?
+## Quick example
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+Add a `wordpress` recipe to your Landofile to get started:
+
+```yaml .lando.yml
+name: my-wordpress-site
+recipe: wordpress
+config:
+  php: '8.3'
+  database: mysql:8.0
+```
+
+Then run `lando start` and your local WordPress environment is live.
+
+<Steps>
+  <Step title="Install Lando">
+    [Download and install Lando](https://docs.lando.dev/getting-started/installation.html) for your platform. The WordPress plugin is included by default.
+  </Step>
+  <Step title="Initialize your project">
+    Run `lando init` in your project directory to generate a Landofile, or create one manually with the `wordpress` recipe.
+  </Step>
+  <Step title="Start the environment">
+    Run `lando start` to build and launch your WordPress containers. Lando prints the local URL when ready.
+  </Step>
+  <Step title="Configure WordPress">
+    Use `lando wp config create` to set up `wp-config.php` with your local database credentials, then install WordPress with `lando wp core install`.
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="WP-CLI guide" icon="terminal" href="/guides/wp-cli">
+    Common WP-CLI workflows: search-replace, plugin management, and more.
+  </Card>
+  <Card title="Import a database" icon="database" href="/guides/importing-exporting">
+    Bring in an existing site's database dump with lando db-import.
+  </Card>
+  <Card title="Set up Xdebug" icon="bug" href="/guides/xdebug">
+    Enable step debugging in your WordPress PHP code.
+  </Card>
+  <Card title="Contribute" icon="code-pull-request" href="/development">
+    Run tests, work on examples, and contribute to the plugin.
+  </Card>
+</CardGroup>

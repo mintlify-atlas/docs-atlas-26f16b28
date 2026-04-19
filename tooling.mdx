@@ -1,0 +1,57 @@
+---
+title: "Lando WordPress tooling commands"
+description: "Use lando wp, lando composer, lando php, lando mysql, lando db-import, and lando db-export to manage your Lando WordPress environment locally."
+---
+
+Every Lando WordPress recipe ships with a set of dev tools that run inside the container, so you never need to install PHP, Composer, or WP-CLI on your host machine. All commands below are available from inside your project directory.
+
+## Available commands
+
+```bash
+lando composer          Runs composer commands
+lando db-export [file]  Exports database from a service into a file
+lando db-import <file>  Imports a dump file into database service
+lando wp                Runs wordpress commands
+lando mysql             Drops into a MySQL shell on a database service
+lando php               Runs php commands
+```
+
+<Note>
+The database shell command changes based on your `database` setting. With `mysql` or `mariadb` (version 10.3 and below) you get `lando mysql`; with `mariadb` 10.4+ you get `lando mariadb`; with `postgres` you get `lando psql`.
+</Note>
+
+## Usage examples
+
+```bash
+# Search-replace the domain name
+lando wp search-replace 'some.old.domain' 'mysite.lndo.site'
+
+# Run composer install
+lando composer install
+
+# Drop into a mysql shell
+lando mysql
+
+# Check the app's php info
+lando php -i
+```
+
+## Importing a database
+
+Once your site is running, pull in your database using `lando db-import`. The command accepts uncompressed, gzipped, or zipped SQL files. The file must exist somewhere inside your app directory due to Docker file-sharing constraints.
+
+```bash
+# Grab your database dump
+curl -fsSL -o database.sql.gz "https://url.to.my.db/database.sql.gz"
+
+# Import the database
+lando db-import database.sql.gz
+```
+
+<Info>
+Run `lando` from inside your app directory to see the complete list of available commands. If you have customized your `database` setting, your list may differ from the defaults shown above.
+</Info>
+
+<Tip>
+For a full walkthrough of WP-CLI usage, see the [WP-CLI guide](/guides/wp-cli). For detailed import and export instructions, see the [importing and exporting guide](/guides/importing-exporting).
+</Tip>
